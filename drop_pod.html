@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>drop-pod / Precision Aerial Delivery System</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #1c2128;
+  --bg4:      #21262d;
+  --border:   #30363d;
+  --border2:  #21262d;
+  --text:     #c9d1d9;
+  --muted:    #8b949e;
+  --bright:   #f0f6fc;
+  --accent:   #f0883e;
+  --blue:     #58a6ff;
+  --green:    #3fb950;
+  --red:      #f85149;
+  --yellow:   #e3b341;
+  --purple:   #bc8cff;
+  --cyan:     #79c0ff;
+  --mono:     'JetBrains Mono', monospace;
+  --head:     'Syne', sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:13px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* ─── TOPBAR ────────────────────────────────── */
+.topbar{
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:0 1.5rem;
+  height:52px;
+  display:flex;
+  align-items:center;
+  gap:1.5rem;
+  position:sticky;
+  top:0;
+  z-index:200;
+}
+.topbar-brand{
+  font-family:var(--head);
+  font-weight:800;
+  font-size:1.1rem;
+  color:var(--bright);
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.topbar-brand .pod-mark{
+  width:22px; height:22px;
+  border:2px solid var(--accent);
+  transform:rotate(45deg);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.topbar-brand .pod-mark::after{
+  content:'▼';
+  transform:rotate(-45deg);
+  color:var(--accent);
+  font-size:7px;
+}
+.topbar-sep{color:var(--border);font-size:1.2rem;}
+.breadcrumb{
+  display:flex; align-items:center; gap:0.3rem;
+  font-size:12px; color:var(--muted);
+}
+.breadcrumb a{color:var(--blue); text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.topbar-right{
+  margin-left:auto;
+  display:flex; gap:0.75rem; align-items:center;
+}
+.badge{
+  font-size:10px;
+  padding:0.15rem 0.5rem;
+  border-radius:2px;
+  font-family:var(--mono);
+  letter-spacing:0.05em;
+}
+.badge-orange{background:rgba(240,136,62,0.15); color:var(--accent); border:1px solid rgba(240,136,62,0.3);}
+.badge-green {background:rgba(63,185,80,0.12); color:var(--green); border:1px solid rgba(63,185,80,0.25);}
+.badge-blue  {background:rgba(88,166,255,0.12); color:var(--blue);  border:1px solid rgba(88,166,255,0.25);}
+
+/* ─── LAYOUT ────────────────────────────────── */
+.layout{display:flex; min-height:calc(100vh - 52px);}
+.sidebar{
+  width:260px; flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  position:sticky;
+  top:52px;
+  height:calc(100vh - 52px);
+}
+.main-area{flex:1; min-width:0; overflow-x:hidden;}
+
+/* ─── SIDEBAR ────────────────────────────────── */
+.sidebar-section{padding:1rem 0;}
+.sidebar-label{
+  font-family:var(--head);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0.15em;
+  color:var(--muted);
+  padding:0 1rem 0.5rem;
+  text-transform:uppercase;
+}
+.tree-item{
+  display:flex; align-items:center; gap:0.5rem;
+  padding:0.3rem 1rem;
+  cursor:pointer;
+  color:var(--text);
+  font-size:12px;
+  border-left:2px solid transparent;
+  transition:all 0.15s;
+  user-select:none;
+}
+.tree-item:hover{background:rgba(255,255,255,0.04); color:var(--bright);}
+.tree-item.active{
+  border-left-color:var(--accent);
+  background:rgba(240,136,62,0.08);
+  color:var(--bright);
+}
+.tree-item.dir{color:var(--blue);}
+.tree-item .icon{
+  width:14px; text-align:center;
+  font-size:11px; flex-shrink:0;
+}
+.tree-item .name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tree-child{padding-left:1rem;}
+
+.sidebar-stats{
+  padding:1rem;
+  border-top:1px solid var(--border);
+}
+.stat-row{
+  display:flex; justify-content:space-between;
+  margin-bottom:0.4rem;
+  font-size:11px;
+}
+.stat-key{color:var(--muted);}
+.stat-val{color:var(--bright); font-weight:600;}
+
+/* ─── REPO HEADER ────────────────────────────── */
+.repo-header{
+  padding:2rem 2rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  position:relative;
+  overflow:hidden;
+}
+.repo-header::after{
+  content:'';
+  position:absolute;
+  right:-60px; top:-60px;
+  width:300px; height:300px;
+  background:radial-gradient(circle, rgba(240,136,62,0.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+.repo-title{
+  font-family:var(--head);
+  font-weight:800;
+  font-size:1.6rem;
+  color:var(--bright);
+  display:flex; align-items:center; gap:0.75rem;
+  margin-bottom:0.5rem;
+}
+.repo-title span{color:var(--accent);}
+.repo-desc{color:var(--muted); font-size:12px; margin-bottom:1.25rem; max-width:700px;}
+
+.repo-meta{display:flex; gap:1.5rem; flex-wrap:wrap;}
+.meta-tag{
+  display:flex; align-items:center; gap:0.4rem;
+  font-size:11px; color:var(--muted);
+}
+.meta-tag .dot{
+  width:8px; height:8px; border-radius:50%;
+}
+.dot-py{background:#3572A5;}
+.dot-lua{background:#000080;}
+.dot-md{background:#083fa1;}
+
+/* ─── FILE VIEWER AREA ───────────────────────── */
+.file-area{padding:1.5rem 2rem;}
+
+/* ─── FILE TABLE (directory listing) ─────────── */
+.file-table{
+  width:100%;
+  border-collapse:collapse;
+  border:1px solid var(--border);
+  border-radius:4px;
+  overflow:hidden;
+  margin-bottom:1.5rem;
+}
+.file-table th{
+  background:var(--bg3);
+  padding:0.6rem 1rem;
+  text-align:left;
+  font-size:11px;
+  font-weight:600;
+  color:var(--muted);
+  letter-spacing:0.08em;
+  border-bottom:1px solid var(--border);
+}
+.file-table td{
+  padding:0.5rem 1rem;
+  border-bottom:1px solid var(--border2);
+  font-size:12px;
+}
+.file-table tr:last-child td{border-bottom:none;}
+.file-table tr:hover td{background:rgba(255,255,255,0.03);}
+.file-table .f-icon{width:30px; color:var(--blue);}
+.file-table .f-name{color:var(--blue); cursor:pointer; text-decoration:none;}
+.file-table .f-name:hover{text-decoration:underline;}
+.file-table .f-name.dir-name{color:var(--blue); font-weight:500;}
+.file-table .f-desc{color:var(--muted);}
+.file-table .f-time{color:var(--muted); text-align:right; white-space:nowrap;}
+
+/* ─── CODE FILE VIEWER ───────────────────────── */
+.code-viewer{
+  border:1px solid var(--border);
+  border-radius:4px;
+  overflow:hidden;
+  margin-bottom:1.5rem;
+}
+.code-header{
+  background:var(--bg3);
+  padding:0.6rem 1rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.code-header-left{display:flex; align-items:center; gap:0.75rem;}
+.code-filename{font-size:12px; color:var(--bright); font-weight:600;}
+.code-lang{
+  font-size:10px; color:var(--muted);
+  background:var(--bg4); border:1px solid var(--border);
+  padding:0.1rem 0.4rem; border-radius:2px;
+}
+.code-lines-count{font-size:11px; color:var(--muted);}
+.copy-btn{
+  background:var(--bg4); border:1px solid var(--border);
+  color:var(--muted); font-family:var(--mono); font-size:10px;
+  padding:0.2rem 0.6rem; cursor:pointer; transition:all 0.15s;
+  letter-spacing:0.05em;
+}
+.copy-btn:hover{color:var(--bright); border-color:var(--accent);}
+.code-body{
+  background:#0d1117;
+  overflow-x:auto;
+  position:relative;
+}
+.code-body table{border-collapse:collapse; width:100%;}
+.code-body td{vertical-align:top; padding:0;}
+.code-body .ln{
+  background:var(--bg);
+  color:var(--muted);
+  font-size:11px;
+  padding:0 0.75rem;
+  text-align:right;
+  user-select:none;
+  border-right:1px solid var(--border2);
+  min-width:44px;
+  white-space:nowrap;
+}
+.code-body .lc{
+  padding:0 1rem;
+  white-space:pre;
+  font-size:12px;
+  color:var(--text);
+}
+.code-body tr:hover .ln,
+.code-body tr:hover .lc{background:rgba(255,255,255,0.02);}
+
+/* Syntax colours */
+.kw  {color:#ff7b72;}
+.str {color:#a5d6ff;}
+.cm  {color:var(--muted); font-style:italic;}
+.num {color:#79c0ff;}
+.fn  {color:#d2a8ff;}
+.dec {color:#ffa657;}
+.cls {color:#ffa657;}
+.op  {color:var(--text);}
+.hl  {background:rgba(240,136,62,0.1);}
+
+/* ─── README VIEWER ──────────────────────────── */
+.readme-viewer{
+  border:1px solid var(--border);
+  border-radius:4px;
+  overflow:hidden;
+  margin-bottom:1.5rem;
+}
+.readme-header{
+  background:var(--bg3);
+  padding:0.6rem 1rem;
+  border-bottom:1px solid var(--border);
+  font-size:12px; color:var(--muted);
+  display:flex; gap:0.5rem; align-items:center;
+}
+.readme-body{
+  padding:2rem;
+  background:var(--bg2);
+  line-height:1.8;
+}
+.readme-body h1{font-family:var(--head); font-weight:800; font-size:1.8rem; color:var(--bright); margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.75rem;}
+.readme-body h2{font-family:var(--head); font-weight:700; font-size:1.2rem; color:var(--bright); margin:1.75rem 0 0.75rem; border-bottom:1px solid var(--border); padding-bottom:0.4rem;}
+.readme-body h3{font-family:var(--head); font-weight:600; font-size:1rem; color:var(--bright); margin:1.25rem 0 0.5rem;}
+.readme-body p{font-size:13px; color:var(--text); margin-bottom:0.75rem;}
+.readme-body code{background:var(--bg3); border:1px solid var(--border); padding:0.1rem 0.3rem; font-size:11px; color:var(--cyan); border-radius:2px;}
+.readme-body pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  padding:1rem;
+  overflow-x:auto;
+  margin:0.75rem 0;
+  font-size:11px;
+  color:var(--text);
+  white-space:pre;
+}
+.readme-body pre code{background:none; border:none; padding:0; color:inherit;}
+.readme-body table{width:100%; border-collapse:collapse; margin:0.75rem 0; font-size:12px;}
+.readme-body th{background:var(--bg3); padding:0.4rem 0.75rem; text-align:left; color:var(--muted); border:1px solid var(--border);}
+.readme-body td{padding:0.4rem 0.75rem; border:1px solid var(--border); color:var(--text);}
+.readme-body tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+.readme-body ul,ol{padding-left:1.5rem; margin:0.5rem 0;}
+.readme-body li{font-size:13px; color:var(--text); margin-bottom:0.2rem;}
+.readme-body a{color:var(--blue); text-decoration:none;}
+.readme-body a:hover{text-decoration:underline;}
+.readme-body blockquote{
+  border-left:3px solid var(--accent);
+  padding:0.5rem 1rem;
+  background:rgba(240,136,62,0.06);
+  margin:0.75rem 0;
+  font-size:12px; color:var(--muted);
+}
+.readme-body strong{color:var(--bright);}
+
+/* ─── PANEL: COMMIT BAR ──────────────────────── */
+.commit-bar{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:0.6rem 1rem;
+  display:flex; align-items:center; gap:1rem;
+  margin-bottom:1rem;
+  font-size:11px;
+}
+.commit-avatar{
+  width:20px; height:20px; border-radius:50%;
+  background:linear-gradient(135deg, var(--accent), var(--purple));
+  flex-shrink:0;
+}
+.commit-msg{color:var(--bright); font-weight:600; flex:1;}
+.commit-sha{color:var(--blue); font-family:var(--mono);}
+.commit-time{color:var(--muted);}
+
+/* ─── BANNER HERO ────────────────────────────── */
+.hero-banner{
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+  border-bottom:1px solid var(--border);
+  padding:3rem 2rem;
+  position:relative;
+  overflow:hidden;
+}
+.hero-banner::before{
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at 70% 50%, rgba(240,136,62,0.07) 0%, transparent 60%);
+}
+.hero-grid{
+  display:grid; grid-template-columns:1fr auto;
+  gap:2rem; align-items:center;
+  max-width:900px;
+  position:relative;
+}
+.hero-tag{
+  font-family:var(--mono);
+  font-size:9px; letter-spacing:0.3em;
+  color:var(--accent); margin-bottom:0.75rem;
+  display:flex; align-items:center; gap:0.5rem;
+}
+.hero-tag::before{content:''; display:inline-block; width:24px; height:1px; background:var(--accent);}
+.hero-title{
+  font-family:var(--head);
+  font-weight:800;
+  font-size:2.8rem;
+  line-height:0.95;
+  color:var(--bright);
+  margin-bottom:0.5rem;
+}
+.hero-title em{color:var(--accent); font-style:normal;}
+.hero-sub{font-size:13px; color:var(--muted); margin-bottom:1.5rem;}
+.hero-chips{display:flex; gap:0.5rem; flex-wrap:wrap;}
+.chip{
+  font-family:var(--mono); font-size:10px;
+  padding:0.2rem 0.6rem;
+  border:1px solid var(--border);
+  color:var(--muted);
+  background:var(--bg3);
+  transition:all 0.15s;
+}
+.chip:hover{border-color:var(--accent); color:var(--accent);}
+
+/* ─── TAB BAR ────────────────────────────────── */
+.tab-bar{
+  display:flex; gap:0; border-bottom:1px solid var(--border);
+  background:var(--bg2); padding:0 1.5rem;
+  position:sticky; top:52px; z-index:100;
+}
+.tab{
+  padding:0.7rem 1rem;
+  font-size:12px; color:var(--muted);
+  cursor:pointer; border-bottom:2px solid transparent;
+  transition:all 0.15s;
+  display:flex; align-items:center; gap:0.4rem;
+}
+.tab:hover{color:var(--bright);}
+.tab.active{color:var(--bright); border-bottom-color:var(--accent);}
+.tab-count{
+  background:var(--bg4); border:1px solid var(--border);
+  font-size:9px; padding:0.05rem 0.35rem; border-radius:2px;
+}
+
+/* ─── PANELS ─────────────────────────────────── */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ─── SECTION DIVIDER ────────────────────────── */
+.sec-div{
+  display:flex; align-items:center; gap:0.75rem;
+  margin:1.5rem 0 1rem;
+  font-family:var(--head); font-size:11px; font-weight:700;
+  color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;
+}
+.sec-div::before,.sec-div::after{content:''; flex:1; height:1px; background:var(--border);}
+
+/* ─── SPEC GRID ──────────────────────────────── */
+.spec-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; margin-bottom:1.5rem;}
+.spec-card{
+  background:var(--bg3); border:1px solid var(--border);
+  padding:0.75rem 1rem;
+  transition:border-color 0.15s;
+}
+.spec-card:hover{border-color:rgba(240,136,62,0.4);}
+.spec-label{font-size:9px; letter-spacing:0.2em; color:var(--muted); margin-bottom:0.3rem;}
+.spec-value{font-size:13px; color:var(--bright); font-weight:600;}
+.spec-unit{font-size:10px; color:var(--muted);}
+
+/* ─── PHASE FLOW ─────────────────────────────── */
+.phase-flow{
+  display:flex; align-items:stretch;
+  gap:0; margin:1rem 0; overflow-x:auto;
+}
+.phase-box{
+  background:var(--bg3); border:1px solid var(--border);
+  padding:0.75rem 1rem; min-width:120px;
+  position:relative; text-align:center;
+  transition:border-color 0.15s;
+}
+.phase-box.active-phase{border-color:var(--accent);}
+.phase-box.active-phase .phase-state{color:var(--accent);}
+.phase-num{font-size:9px; color:var(--muted); letter-spacing:0.1em; margin-bottom:0.2rem;}
+.phase-state{font-family:var(--head); font-size:12px; font-weight:700; color:var(--bright);}
+.phase-arr{
+  display:flex; align-items:center;
+  padding:0 0.3rem; color:var(--border);
+  font-size:1rem;
+}
+
+/* ─── BOM TABLE ──────────────────────────────── */
+.bom-table{width:100%; border-collapse:collapse; font-size:11px;}
+.bom-table th{
+  background:var(--bg3); color:var(--muted);
+  padding:0.5rem 0.75rem; text-align:left;
+  border:1px solid var(--border); font-size:9px; letter-spacing:0.1em;
+}
+.bom-table td{
+  padding:0.45rem 0.75rem;
+  border:1px solid var(--border2);
+  color:var(--text);
+}
+.bom-table tr:hover td{background:rgba(255,255,255,0.02);}
+.bom-table .bom-id{color:var(--muted); font-family:var(--mono);}
+.bom-table .bom-cat{color:var(--accent);}
+.bom-table .bom-name{color:var(--bright); font-weight:600;}
+.bom-table .bom-price{color:var(--green); text-align:right;}
+.bom-table .bom-total-row td{background:rgba(63,185,80,0.06); color:var(--green); font-weight:700;}
+
+/* ─── COPY SUCCESS ───────────────────────────── */
+.copy-success{
+  position:fixed; bottom:1.5rem; right:1.5rem;
+  background:var(--green); color:#000;
+  font-family:var(--mono); font-size:11px;
+  padding:0.5rem 1rem;
+  transform:translateY(100px);
+  transition:transform 0.2s;
+  z-index:9999;
+}
+.copy-success.show{transform:translateY(0);}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .spec-grid{grid-template-columns:repeat(2,1fr);}
+  .phase-flow{overflow-x:auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="pod-mark"></div>
+    drop-pod
+  </div>
+  <span class="topbar-sep">/</span>
+  <div class="breadcrumb" id="breadcrumb">
+    <a href="#" onclick="showRoot()">Precision Aerial Delivery System</a>
+  </div>
+  <div class="topbar-right">
+    <span class="badge badge-orange">Phase 1</span>
+    <span class="badge badge-green">Active Dev</span>
+    <span class="badge badge-blue">MIT</span>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Repository</div>
+    <div class="tree-item active" onclick="showRoot(this)">
+      <span class="icon">🏠</span><span class="name">/ root</span>
+    </div>
+    <div class="tree-item dir" onclick="openFile('README.md',this)">
+      <span class="icon">📄</span><span class="name">README.md</span>
+    </div>
+    <div class="tree-item dir" onclick="openFile('BOM.csv',this)">
+      <span class="icon">📊</span><span class="name">BOM.csv</span>
+    </div>
+    <div class="tree-item" onclick="openFile('LICENSE',this)">
+      <span class="icon">⚖️</span><span class="name">LICENSE</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">software/</div>
+    <div class="tree-child">
+      <div class="tree-item" onclick="openFile('mission_manager.py',this)">
+        <span class="icon">🚀</span><span class="name">mission_manager.py</span>
+      </div>
+      <div class="tree-item" onclick="openFile('vision.py',this)">
+        <span class="icon">👁️</span><span class="name">vision.py</span>
+      </div>
+      <div class="tree-item" onclick="openFile('guidance.py',this)">
+        <span class="icon">🧭</span><span class="name">guidance.py</span>
+      </div>
+      <div class="tree-item" onclick="openFile('comms.py',this)">
+        <span class="icon">📡</span><span class="name">comms.py</span>
+      </div>
+      <div class="tree-item" onclick="openFile('config.py',this)">
+        <span class="icon">⚙️</span><span class="name">config.py</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">firmware/</div>
+    <div class="tree-child">
+      <div class="tree-item" onclick="openFile('drop_pod.param',this)">
+        <span class="icon">✈️</span><span class="name">drop_pod.param</span>
+      </div>
+      <div class="tree-item" onclick="openFile('vision_inject.lua',this)">
+        <span class="icon">🔧</span><span class="name">vision_inject.lua</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">docs/</div>
+    <div class="tree-child">
+      <div class="tree-item" onclick="openFile('ASSEMBLY.md',this)">
+        <span class="icon">🔩</span><span class="name">ASSEMBLY.md</span>
+      </div>
+      <div class="tree-item" onclick="openFile('TUNING.md',this)">
+        <span class="icon">📐</span><span class="name">TUNING.md</span>
+      </div>
+      <div class="tree-item" onclick="openFile('SAFETY.md',this)">
+        <span class="icon">⚠️</span><span class="name">SAFETY.md</span>
+      </div>
+      <div class="tree-item" onclick="openFile('wiring_diagram.md',this)">
+        <span class="icon">⚡</span><span class="name">wiring_diagram.md</span>
+      </div>
+      <div class="tree-item" onclick="openFile('stl_readme.md',this)">
+        <span class="icon">🖨️</span><span class="name">stl/README.md</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-stats">
+    <div class="stat-row"><span class="stat-key">Files</span><span class="stat-val">17</span></div>
+    <div class="stat-row"><span class="stat-key">Language</span><span class="stat-val">Python · Lua</span></div>
+    <div class="stat-row"><span class="stat-key">BOM items</span><span class="stat-val">32</span></div>
+    <div class="stat-row"><span class="stat-key">Est. cost</span><span class="stat-val">~$265</span></div>
+    <div class="stat-row"><span class="stat-key">Phase</span><span class="stat-val">1 — GPS+Optical</span></div>
+  </div>
+</div>
+
+<!-- MAIN AREA -->
+<div class="main-area">
+
+  <!-- HERO BANNER -->
+  <div class="hero-banner">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-tag">OPEN SOURCE PRECISION DELIVERY</div>
+        <div class="hero-title">DROP<br/><em>POD</em></div>
+        <div class="hero-sub">GPS + Nose-Camera guided aerial delivery pod. Carried on RC aircraft wing. Released on command. Homes to red carpet target nose-first.</div>
+        <div class="hero-chips">
+          <span class="chip">ArduPlane</span>
+          <span class="chip">RPi Zero 2W</span>
+          <span class="chip">OpenCV</span>
+          <span class="chip">MAVLink</span>
+          <span class="chip">u-blox M10</span>
+          <span class="chip">ELRS</span>
+          <span class="chip">4× Canard Fins</span>
+          <span class="chip">No Propulsion</span>
+        </div>
+      </div>
+      <!-- Pod SVG -->
+      <div style="opacity:0.8">
+        <svg width="100" height="220" viewBox="0 0 100 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 50 Q50 5 70 50" fill="none" stroke="#f0883e" stroke-width="1.5"/>
+          <circle cx="50" cy="35" r="10" fill="rgba(88,166,255,0.15)" stroke="#58a6ff" stroke-width="1.5"/>
+          <circle cx="50" cy="35" r="4" fill="rgba(88,166,255,0.3)" stroke="#58a6ff"/>
+          <rect x="30" y="50" width="40" height="140" rx="3" fill="rgba(22,27,34,0.9)" stroke="#30363d" stroke-width="1.5"/>
+          <rect x="8" y="55" width="22" height="7" rx="1" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1.2"/>
+          <rect x="70" y="55" width="22" height="7" rx="1" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1.2"/>
+          <rect x="8" y="70" width="22" height="7" rx="1" fill="rgba(240,136,62,0.08)" stroke="#30363d" stroke-width="1"/>
+          <rect x="70" y="70" width="22" height="7" rx="1" fill="rgba(240,136,62,0.08)" stroke="#30363d" stroke-width="1"/>
+          <rect x="35" y="100" width="30" height="20" rx="3" fill="rgba(63,185,80,0.1)" stroke="#3fb950" stroke-width="1"/>
+          <text x="50" y="114" text-anchor="middle" fill="#3fb950" font-family="JetBrains Mono" font-size="6">GPS</text>
+          <rect x="35" y="130" width="30" height="20" rx="3" fill="rgba(188,140,255,0.1)" stroke="#bc8cff" stroke-width="1"/>
+          <text x="50" y="144" text-anchor="middle" fill="#bc8cff" font-family="JetBrains Mono" font-size="6">Pi 2W</text>
+          <rect x="35" y="155" width="30" height="15" rx="2" fill="rgba(227,179,65,0.1)" stroke="#e3b341" stroke-width="1"/>
+          <text x="50" y="166" text-anchor="middle" fill="#e3b341" font-family="JetBrains Mono" font-size="6">3S LiPo</text>
+          <line x1="50" y1="190" x2="50" y2="210" stroke="#f0883e" stroke-width="1" stroke-dasharray="3,2"/>
+          <polygon points="50,216 46,207 54,207" fill="#f0883e"/>
+          <text x="5" y="52" fill="#f0883e" font-family="JetBrains Mono" font-size="6">FIN×4</text>
+          <text x="30" y="32" fill="#58a6ff" font-family="JetBrains Mono" font-size="7">CAM</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('code',this)">📁 Code <span class="tab-count">17</span></div>
+    <div class="tab" onclick="switchTab('overview',this)">📊 Overview</div>
+    <div class="tab" onclick="switchTab('bom',this)">🛒 BOM <span class="tab-count">32</span></div>
+    <div class="tab" onclick="switchTab('pipeline',this)">🔄 Mission Flow</div>
+  </div>
+
+  <!-- ═══ TAB: CODE ═══ -->
+  <div id="tab-code" class="panel active">
+    <div class="file-area" id="file-area">
+      <!-- Root directory listing -->
+      <div id="dir-view">
+        <div class="commit-bar">
+          <div class="commit-avatar"></div>
+          <span class="commit-msg">feat: initial complete system — GPS+optical guidance, full avionics stack, BOM, docs</span>
+          <span class="commit-sha">a1b2c3d</span>
+          <span class="commit-time">just now</span>
+        </div>
+
+        <table class="file-table">
+          <thead><tr><th></th><th>Name</th><th>Description</th><th>Updated</th></tr></thead>
+          <tbody>
+            <tr><td class="f-icon">📁</td><td><span class="f-name dir-name" onclick="openFile('software_dir')">software/</span></td><td class="f-desc">Python mission manager, vision, guidance, comms</td><td class="f-time">just now</td></tr>
+            <tr><td class="f-icon">📁</td><td><span class="f-name dir-name" onclick="openFile('firmware_dir')">firmware/</span></td><td class="f-desc">ArduPlane .param file, Lua vision inject script</td><td class="f-time">just now</td></tr>
+            <tr><td class="f-icon">📁</td><td><span class="f-name dir-name" onclick="openFile('hardware_dir')">hardware/</span></td><td class="f-desc">Wiring diagrams, 3D print guides</td><td class="f-time">just now</td></tr>
+            <tr><td class="f-icon">📁</td><td><span class="f-name dir-name" onclick="openFile('docs_dir')">docs/</span></td><td class="f-desc">Assembly, tuning, safety documentation</td><td class="f-time">just now</td></tr>
+            <tr><td class="f-icon">📄</td><td><span class="f-name" onclick="openFile('README.md')">README.md</span></td><td class="f-desc">Complete project documentation and quick-start</td><td class="f-time">just now</td></tr>
+            <tr><td class="f-icon">📊</td><td><span class="f-name" onclick="openFile('BOM.csv')">BOM.csv</span></td><td class="f-desc">32-item bill of materials with sourcing and prices</td><td class="f-time">just now</td></tr>
+            <tr><td class="f-icon">⚖️</td><td><span class="f-name" onclick="openFile('LICENSE')">LICENSE</span></td><td class="f-desc">MIT License</td><td class="f-time">just now</td></tr>
+          </tbody>
+        </table>
+
+        <div id="sub-dir-view"></div>
+      </div>
+
+      <!-- File content view -->
+      <div id="file-view" style="display:none">
+        <div style="margin-bottom:1rem;">
+          <span onclick="showRoot()" style="cursor:pointer;color:var(--blue);font-size:12px;">← Back to root</span>
+        </div>
+        <div id="file-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: OVERVIEW ═══ -->
+  <div id="tab-overview" class="panel">
+    <div class="file-area">
+
+      <div class="sec-div">SYSTEM SPECS</div>
+      <div class="spec-grid">
+        <div class="spec-card"><div class="spec-label">GLIDE RATIO</div><div class="spec-value">4:1 <span class="spec-unit">min</span></div></div>
+        <div class="spec-card"><div class="spec-label">RELEASE ALT</div><div class="spec-value">60–200 <span class="spec-unit">m AGL</span></div></div>
+        <div class="spec-card"><div class="spec-label">OPTICAL ACT.</div><div class="spec-value">40 <span class="spec-unit">m AGL</span></div></div>
+        <div class="spec-card"><div class="spec-label">LANDING CEP</div><div class="spec-value">≤0.5 <span class="spec-unit">m optical</span></div></div>
+        <div class="spec-card"><div class="spec-label">TOTAL MASS</div><div class="spec-value">≤650 <span class="spec-unit">g target</span></div></div>
+        <div class="spec-card"><div class="spec-label">SERVO RATE</div><div class="spec-value">400 <span class="spec-unit">Hz</span></div></div>
+        <div class="spec-card"><div class="spec-label">VISION FPS</div><div class="spec-value">30 <span class="spec-unit">fps</span></div></div>
+        <div class="spec-card"><div class="spec-label">WIND LIMIT</div><div class="spec-value">≤8 <span class="spec-unit">m/s</span></div></div>
+      </div>
+
+      <div class="sec-div">MISSION PHASES</div>
+      <div class="phase-flow">
+        <div class="phase-box"><div class="phase-num">S0</div><div class="phase-state">IDLE</div></div>
+        <div class="phase-arr">›</div>
+        <div class="phase-box"><div class="phase-num">S1</div><div class="phase-state">ARMED</div></div>
+        <div class="phase-arr">›</div>
+        <div class="phase-box active-phase"><div class="phase-num">S2</div><div class="phase-state">RELEASED</div></div>
+        <div class="phase-arr">›</div>
+        <div class="phase-box"><div class="phase-num">S3</div><div class="phase-state">GPS GLIDE</div></div>
+        <div class="phase-arr">›</div>
+        <div class="phase-box"><div class="phase-num">S4</div><div class="phase-state">CAM LOCK</div></div>
+        <div class="phase-arr">›</div>
+        <div class="phase-box"><div class="phase-num">S5</div><div class="phase-state">LANDED</div></div>
+      </div>
+
+      <div class="sec-div">AVIONICS STACK</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+        <div>
+          <div style="background:var(--bg3);border:1px solid var(--border);padding:1rem;">
+            <div style="font-size:9px;letter-spacing:0.2em;color:var(--muted);margin-bottom:0.5rem;">PRIMARY COMPUTE</div>
+            <div style="font-family:var(--head);font-size:1rem;color:var(--bright);margin-bottom:0.3rem;">Matek H743-WING</div>
+            <div style="font-size:11px;color:var(--muted);">STM32H743 · ArduPlane · PID @ 400Hz · 4× servo PWM · GPS · IMU · Baro</div>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--bg3);border:1px solid var(--border);padding:1rem;">
+            <div style="font-size:9px;letter-spacing:0.2em;color:var(--muted);margin-bottom:0.5rem;">VISION COMPUTE</div>
+            <div style="font-family:var(--head);font-size:1rem;color:var(--bright);margin-bottom:0.3rem;">RPi Zero 2W</div>
+            <div style="font-size:11px;color:var(--muted);">ARM Cortex-A53×4 · OpenCV HSV detection · Mission FSM · MAVLink bridge</div>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--bg3);border:1px solid var(--border);padding:1rem;">
+            <div style="font-size:9px;letter-spacing:0.2em;color:var(--muted);margin-bottom:0.5rem;">NOSE CAMERA</div>
+            <div style="font-family:var(--head);font-size:1rem;color:var(--bright);margin-bottom:0.3rem;">RPi Cam Module 3 Wide</div>
+            <div style="font-size:11px;color:var(--muted);">IMX708 · 102° FOV · CSI-2 · Mounted at nose tip · Forward-facing</div>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--bg3);border:1px solid var(--border);padding:1rem;">
+            <div style="font-size:9px;letter-spacing:0.2em;color:var(--muted);margin-bottom:0.5rem;">NAVIGATION</div>
+            <div style="font-family:var(--head);font-size:1rem;color:var(--bright);margin-bottom:0.3rem;">u-blox M10 GNSS</div>
+            <div style="font-size:11px;color:var(--muted);">GPS+GLO+GAL · 10Hz · concurrent GNSS · patch antenna in nose</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-div">REACHABILITY ALGORITHM</div>
+      <div class="code-viewer">
+        <div class="code-header">
+          <div class="code-header-left">
+            <span class="code-filename">guidance.py — reachability check</span>
+            <span class="code-lang">Python</span>
+          </div>
+        </div>
+        <div class="code-body">
+          <table><tbody id="overview-code"></tbody></table>
+        </div>
+      </div>
+
+      <div class="sec-div">VISION PIPELINE</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);padding:1.5rem;">
+        <div style="display:flex;gap:0;align-items:center;flex-wrap:wrap;">
+          <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--bg);border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:0.2rem;">INPUT</div>
+            <div style="font-size:12px;color:var(--bright);">BGR Frame</div>
+            <div style="font-size:10px;color:var(--muted);">1280×720</div>
+          </div>
+          <div style="color:var(--accent);padding:0 0.3rem;">→</div>
+          <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--bg);border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:0.2rem;">STEP 1</div>
+            <div style="font-size:12px;color:var(--bright);">BGR→HSV</div>
+            <div style="font-size:10px;color:var(--muted);">Downscale 640×360</div>
+          </div>
+          <div style="color:var(--accent);padding:0 0.3rem;">→</div>
+          <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--bg);border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:0.2rem;">STEP 2</div>
+            <div style="font-size:12px;color:var(--bright);">Dual Mask</div>
+            <div style="font-size:10px;color:var(--muted);">Hue 0-12 + 165-180</div>
+          </div>
+          <div style="color:var(--accent);padding:0 0.3rem;">→</div>
+          <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--bg);border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:0.2rem;">STEP 3</div>
+            <div style="font-size:12px;color:var(--bright);">Morph Filter</div>
+            <div style="font-size:10px;color:var(--muted);">Open + Close kernels</div>
+          </div>
+          <div style="color:var(--accent);padding:0 0.3rem;">→</div>
+          <div style="text-align:center;padding:0.75rem 1.25rem;background:var(--bg);border:1px solid var(--border);">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:0.2rem;">STEP 4</div>
+            <div style="font-size:12px;color:var(--bright);">Contour</div>
+            <div style="font-size:10px;color:var(--muted);">Largest blob → cx,cy</div>
+          </div>
+          <div style="color:var(--accent);padding:0 0.3rem;">→</div>
+          <div style="text-align:center;padding:0.75rem 1.25rem;background:rgba(240,136,62,0.1);border:1px solid var(--accent);">
+            <div style="font-size:9px;color:var(--accent);margin-bottom:0.2rem;">OUTPUT</div>
+            <div style="font-size:12px;color:var(--bright);">Correction</div>
+            <div style="font-size:10px;color:var(--accent)">→ FC roll/pitch</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: BOM ═══ -->
+  <div id="tab-bom" class="panel">
+    <div class="file-area">
+      <div class="commit-bar">
+        <span style="font-size:11px;color:var(--muted);">32 components · Estimated total: </span>
+        <span style="color:var(--green);font-weight:700;">~$265 USD</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);">Excludes carrier aircraft, TX, GCS laptop</span>
+      </div>
+      <table class="bom-table" id="bom-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Category</th><th>Component</th><th>Description</th><th>Qty</th><th>Unit $</th><th>Total $</th>
+          </tr>
+        </thead>
+        <tbody id="bom-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: PIPELINE ═══ -->
+  <div id="tab-pipeline" class="panel">
+    <div class="file-area">
+      <div class="sec-div">FULL MISSION SEQUENCE</div>
+
+      <div style="position:relative;padding-left:2rem;border-left:1px solid var(--border);">
+        <!-- Timeline items -->
+        <div id="pipeline-items"></div>
+      </div>
+
+      <div class="sec-div" style="margin-top:2rem;">INTER-PROCESSOR COMMUNICATION</div>
+      <div class="code-viewer">
+        <div class="code-header">
+          <span class="code-filename">MAVLink message flow — Pi ↔ FC</span>
+          <span class="code-lang">Diagram</span>
+        </div>
+        <div style="padding:1.5rem;background:var(--bg);font-size:11px;color:var(--text);overflow-x:auto;">
+<pre style="line-height:1.8;background:none;border:none;padding:0;">
+<span style="color:var(--muted);"># RC TRANSMITTER → ELRS → FC SBUS</span>
+RC TX  ──[2.4GHz ELRS]──► ELRS Rx ──[SBUS]──► F405 FC
+                                                  │
+                                      reads CH7 (ARM), CH8 (DROP), CH9 (ABORT)
+
+<span style="color:var(--muted);"># GROUND CONTROL → TELEMETRY RADIO → FC</span>
+GCS Laptop ──[915MHz SiK]────────────────────────► F405 FC
+                                                      │
+                          HEARTBEAT, COMMAND_LONG(ARM/DROP), SET_TARGET
+
+<span style="color:var(--muted);"># FC ↔ RPi COMPANION (MAVLink v2 / 115200 baud)</span>
+F405 FC ──[UART1 TX]──► RPi GPIO15 (RX)
+RPi GPIO14 (TX) ──► F405 FC UART1 RX
+
+<span style="color:var(--blue);">FC → Pi messages:</span>   GLOBAL_POSITION_INT, ATTITUDE, SYS_STATUS, RC_CHANNELS
+<span style="color:var(--accent);">Pi → FC messages:</span>   HEARTBEAT, NAMED_VALUE_FLOAT("VIS_ROLL"), NAMED_VALUE_FLOAT("VIS_PTCH")
+                     SET_POSITION_TARGET_GLOBAL_INT (guided waypoint)
+                     COMMAND_LONG DO_SET_RELAY (latch fire)
+
+<span style="color:var(--muted);"># RPi CAMERA → RPi (internal CSI-2)</span>
+RPi Cam Module 3 ──[CSI-2 ribbon]──► RPi Zero 2W
+                                        │
+                                   OpenCV HSV pipeline @ 30fps
+                                   → centroid cx, cy, confidence
+                                   → angular correction via MAVLink
+</pre>
+        </div>
+      </div>
+
+      <div class="sec-div">SAFETY GATE LOGIC</div>
+      <div class="code-viewer">
+        <div class="code-header">
+          <span class="code-filename">Drop release — two-stage safety</span>
+          <span class="code-lang">Python</span>
+        </div>
+        <div style="padding:1rem;background:var(--bg);font-size:12px;font-family:var(--mono);overflow-x:auto;">
+<pre style="background:none;border:none;padding:0;line-height:2;"><span class="cm"># GATE 1 — ARM received?</span>
+<span class="kw">if</span> rc_arm_high:
+    <span class="kw">if not</span> gps_fix <span class="kw">or</span> hdop > <span class="num">3.0</span>: <span class="fn">reject</span>(<span class="str">"GPS NOT READY"</span>)
+    <span class="kw">else</span>: state = <span class="str">ARMED</span>   <span class="cm"># gate 1 passes</span>
+
+<span class="cm"># GATE 2 — DROP received? (only valid in ARMED)</span>
+<span class="kw">if</span> rc_drop_high <span class="kw">and</span> state == <span class="str">ARMED</span>:
+    dist   = <span class="fn">haversine</span>(pod_pos, target_pos)
+    max_r  = alt_agl × GLIDE_RATIO × SAFETY_MARGIN  <span class="cm"># 0.85</span>
+
+    <span class="kw">if</span> dist > max_r:  <span class="fn">reject</span>(<span class="str">f"OUT OF RANGE {dist:.0f}m > {max_r:.0f}m"</span>)
+    <span class="kw">elif</span> alt_agl &lt; MIN_AGL: <span class="fn">reject</span>(<span class="str">f"TOO LOW {alt_agl:.0f}m"</span>)
+    <span class="kw">else</span>:
+        <span class="kw">await</span> fc.<span class="fn">fire_latch</span>()   <span class="cm"># both gates passed</span>
+        state = <span class="str">GLIDE_GPS</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-area -->
+</div><!-- end layout -->
+
+<!-- Copy toast -->
+<div class="copy-success" id="copy-toast">Copied to clipboard ✓</div>
+
+<script>
+// ──────────────────────────────────────────────
+// FILE CONTENT DATABASE
+// ──────────────────────────────────────────────
+
+const FILES = {
+  'config.py': {lang:'python', lines: `# config.py — Drop Pod Central Configuration
+# All tunable mission, vision, guidance, and comms
+# parameters live here. Edit before each mission.
+
+# ── MISSION TARGET ─────────────────────────────
+TARGET_LAT: float = 33.5731       # Decimal degrees
+TARGET_LON: float = -7.5898       # Decimal degrees
+TARGET_ALT_MSL: float = 0.0       # Ground MSL (metres)
+
+# ── REACHABILITY CHECK ─────────────────────────
+GLIDE_RATIO: float = 4.0          # horizontal / altitude
+SAFETY_MARGIN: float = 0.85       # Use 85% of max range
+MAX_WIND_SPEED_MS: float = 8.0    # m/s abort threshold
+
+# ── PHASE TRANSITIONS ──────────────────────────
+CAMERA_ACTIVATE_AGL_M: float = 40.0   # metres
+MIN_LOCK_CONFIDENCE: float = 0.80
+IMPACT_ACCEL_G: float = 4.0
+MIN_LOCK_FRAMES: int = 5
+
+# ── VISION ─────────────────────────────────────
+CAM_RESOLUTION: tuple = (1280, 720)
+CAM_FPS: int = 30
+CAM_FOV_H_DEG: float = 102.0
+CAM_FOV_V_DEG: float = 67.0
+
+# Red hue wraps in HSV — two ranges needed
+HSV_RED_LOW_1:  tuple = (0,   120, 80)
+HSV_RED_HIGH_1: tuple = (12,  255, 255)
+HSV_RED_LOW_2:  tuple = (165, 120, 80)
+HSV_RED_HIGH_2: tuple = (180, 255, 255)
+
+MIN_CARPET_AREA_PX: int = 800
+
+# ── OPTICAL GUIDANCE GAINS ─────────────────────
+KV_LATERAL: float = 0.4
+KV_PITCH: float = 0.15
+MAX_OPTICAL_CORRECTION_DEG: float = 15.0
+
+# ── COMMUNICATION ──────────────────────────────
+FC_UART_PORT: str = "/dev/serial0"
+FC_UART_BAUD: int = 115200
+HEARTBEAT_INTERVAL_S: float = 0.5
+TELEM_RATE_HZ: float = 5.0
+MAVLINK_SYSID_FC: int = 1
+MAVLINK_SYSID_PI: int = 2
+
+# ── RC CHANNELS ────────────────────────────────
+RC_CHANNEL_ARM:   int = 7
+RC_CHANNEL_DROP:  int = 8
+RC_CHANNEL_ABORT: int = 9
+RC_HIGH_THRESHOLD_US: int = 1700
+
+# ── SAFETY ─────────────────────────────────────
+GPS_TIMEOUT_S: float = 3.0
+FC_WATCHDOG_TIMEOUT_S: float = 1.5
+MISSION_TIMEOUT_S: float = 120.0
+LOW_BATT_CELL_V: float = 3.4
+
+# ── LOGGING ────────────────────────────────────
+LOG_DIR: str = "/home/pi/drop-pod-logs"
+LOG_LEVEL: str = "DEBUG"
+LOG_VIDEO: bool = True`.split('\n')
+  },
+
+  'mission_manager.py': {lang:'python', lines: `"""
+mission_manager.py — Drop Pod Mission State Machine
+Entry point for Raspberry Pi Zero 2W.
+Run: python3 mission_manager.py
+"""
+import asyncio, logging, time, signal, sys
+from enum import Enum, auto
+from dataclasses import dataclass, field
+from typing import Optional
+
+import config
+from comms import FC_Link
+from vision import RedCarpetTracker
+from guidance import ReachabilityChecker, compute_optical_correction
+
+class MissionState(Enum):
+    IDLE          = auto()
+    ARMED         = auto()
+    RELEASED      = auto()
+    GLIDE_GPS     = auto()
+    GLIDE_OPTICAL = auto()
+    LANDED        = auto()
+    ABORT         = auto()
+
+@dataclass
+class PodTelemetry:
+    lat: float = 0.0;  lon: float = 0.0
+    alt_msl: float = 0.0;  alt_agl: float = 0.0
+    roll_deg: float = 0.0; pitch_deg: float = 0.0
+    gps_fix: bool = False; gps_hdop: float = 99.0
+    battery_v: float = 0.0; accel_g: float = 0.0
+    rc_arm_high: bool = False
+    rc_drop_high: bool = False
+    rc_abort_high: bool = False
+    timestamp: float = field(default_factory=time.time)
+
+class MissionManager:
+    def __init__(self):
+        self.state = MissionState.IDLE
+        self.telemetry = PodTelemetry()
+        self._running = True
+        self.drop_time: Optional[float] = None
+        self.lock_frame_count = 0
+        self.camera_active = False
+
+    async def run(self):
+        self.fc      = FC_Link(config.FC_UART_PORT, config.FC_UART_BAUD)
+        self.tracker = RedCarpetTracker()
+        self.reach   = ReachabilityChecker()
+        await self.fc.connect()
+        await asyncio.gather(
+            asyncio.create_task(self._telemetry_loop()),
+            asyncio.create_task(self._state_machine_loop()),
+            asyncio.create_task(self._heartbeat_loop()),
+            asyncio.create_task(self._watchdog_loop()),
+        )
+
+    async def _state_machine_loop(self):
+        while self._running:
+            await asyncio.sleep(0.05)   # 20 Hz FSM
+            t = self.telemetry
+            if t.rc_abort_high and self.state not in (
+                MissionState.IDLE, MissionState.LANDED, MissionState.ABORT):
+                await self._transition(MissionState.ABORT,"Operator ABORT")
+                continue
+            match self.state:
+                case MissionState.IDLE:     await self._state_idle(t)
+                case MissionState.ARMED:    await self._state_armed(t)
+                case MissionState.RELEASED: await self._state_released(t)
+                case MissionState.GLIDE_GPS:     await self._state_glide_gps(t)
+                case MissionState.GLIDE_OPTICAL: await self._state_glide_optical(t)
+
+    async def _state_armed(self, t):
+        reachable, dist, max_r = self.reach.check(
+            t.lat, t.lon, t.alt_agl,
+            config.TARGET_LAT, config.TARGET_LON)
+        if t.rc_drop_high:
+            if not reachable:
+                await self.fc.send_status_text(
+                    f"DROP REJECTED: OUT OF RANGE ({dist:.0f}m > {max_r:.0f}m)")
+                return
+            await self.fc.fire_latch()
+            await self._transition(MissionState.RELEASED, "Latch fired")
+
+    async def _state_glide_gps(self, t):
+        if t.alt_agl <= config.CAMERA_ACTIVATE_AGL_M and not self.camera_active:
+            self.tracker.start(); self.camera_active = True
+            await self._transition(MissionState.GLIDE_OPTICAL, "Camera active")
+
+    async def _state_glide_optical(self, t):
+        result = self.tracker.get_latest()
+        if result and result.confidence >= config.MIN_LOCK_CONFIDENCE:
+            self.lock_frame_count += 1
+            if self.lock_frame_count >= config.MIN_LOCK_FRAMES:
+                corr = compute_optical_correction(
+                    result.cx, result.cy,
+                    *config.CAM_RESOLUTION)
+                await self.fc.inject_visual_correction(
+                    corr.roll_deg, corr.pitch_deg)
+        if t.accel_g > config.IMPACT_ACCEL_G:
+            await self._transition(MissionState.LANDED,
+                f"Impact {t.accel_g:.1f}g")`.split('\n')
+  },
+
+  'vision.py': {lang:'python', lines: `"""
+vision.py — Red Carpet Detection Pipeline
+Camera IS the nose of the pod — faces forward/down.
+As pod dives, red carpet fills the frame centre.
+"""
+import cv2, numpy as np, threading, time, logging
+from dataclasses import dataclass
+from typing import Optional
+import config
+
+@dataclass
+class DetectionResult:
+    cx: float; cy: float
+    area_px: float; confidence: float
+    bbox: tuple; frame_w: int; frame_h: int
+    timestamp: float
+
+class RedCarpetTracker:
+    def __init__(self):
+        self._latest: Optional[DetectionResult] = None
+        self._lock = threading.Lock()
+        self._stop_event = threading.Event()
+        self._kernel_open  = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (config.MORPH_OPEN_KERNEL_SIZE,)*2)
+        self._kernel_close = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE,
+            (config.MORPH_CLOSE_KERNEL_SIZE,)*2)
+
+    def _detect(self, frame):
+        h, w = frame.shape[:2]
+        small = cv2.resize(frame, (640, 360))
+        hsv   = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
+
+        # Dual-range red mask (hue wraps at 0/180 in HSV)
+        m1 = cv2.inRange(hsv,
+             np.array(config.HSV_RED_LOW_1),
+             np.array(config.HSV_RED_HIGH_1))
+        m2 = cv2.inRange(hsv,
+             np.array(config.HSV_RED_LOW_2),
+             np.array(config.HSV_RED_HIGH_2))
+        mask = cv2.bitwise_or(m1, m2)
+
+        # Morphological noise removal + gap fill
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN,  self._kernel_open)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self._kernel_close)
+
+        contours, _ = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours: return None
+
+        largest = max(contours, key=cv2.contourArea)
+        area    = cv2.contourArea(largest)
+        if area < config.MIN_CARPET_AREA_PX * (640*360)/(w*h):
+            return None
+
+        M  = cv2.moments(largest)
+        if M["m00"] == 0: return None
+        cx = M["m10"]/M["m00"] * (w/640)
+        cy = M["m01"]/M["m00"] * (h/360)
+
+        # Confidence: solidity + aspect_ratio + area_fraction
+        hull     = cv2.convexHull(largest)
+        solidity = area / max(cv2.contourArea(hull), 1)
+        bx,by,bw,bh = cv2.boundingRect(largest)
+        aspect   = min(bw,bh) / max(bw,bh,1)
+        area_sc  = min(1.0, area / (640*360*0.10))
+        conf     = 0.4*solidity + 0.3*aspect + 0.3*area_sc
+
+        return DetectionResult(cx=cx*w/640, cy=cy*h/360,
+            area_px=area, confidence=conf,
+            bbox=(bx,by,bw,bh), frame_w=w, frame_h=h,
+            timestamp=time.time())`.split('\n')
+  },
+
+  'guidance.py': {lang:'python', lines: `"""
+guidance.py — Reachability Check & Optical Correction
+"""
+import math, logging
+from dataclasses import dataclass
+import config
+
+EARTH_RADIUS_M = 6_371_000.0
+
+@dataclass
+class OpticalCorrection:
+    roll_deg:     float   # + = roll right
+    pitch_deg:    float   # + = nose up
+    err_x_norm:   float   # normalised [-1, +1]
+    err_y_norm:   float
+
+def haversine_distance(lat1, lon1, lat2, lon2) -> float:
+    """Great-circle distance between two GPS points (metres)."""
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi   = math.radians(lat2 - lat1)
+    dlambda= math.radians(lon2 - lon1)
+    a = (math.sin(dphi/2)**2 +
+         math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2)
+    return EARTH_RADIUS_M * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+class ReachabilityChecker:
+    def __init__(self,
+        glide_ratio=config.GLIDE_RATIO,
+        safety_margin=config.SAFETY_MARGIN):
+        self.glide_ratio   = glide_ratio
+        self.safety_margin = safety_margin
+
+    def check(self, pod_lat, pod_lon, pod_alt_agl,
+              target_lat, target_lon):
+        """
+        Returns (reachable: bool, distance_m, max_range_m)
+
+        reachable = True if:
+          distance_to_target <= alt_agl * glide_ratio * safety_margin
+        """
+        distance_m  = haversine_distance(
+            pod_lat, pod_lon, target_lat, target_lon)
+        max_range_m = pod_alt_agl * self.glide_ratio * self.safety_margin
+        return distance_m <= max_range_m, distance_m, max_range_m
+
+def compute_optical_correction(cx, cy, frame_w, frame_h):
+    """
+    Convert camera centroid pixel error → roll/pitch corrections.
+
+    Camera is nose-mounted, faces direction of travel.
+    Lateral pixel error  → roll correction  (steer laterally)
+    Longitudinal error   → pitch correction (adjust dive angle)
+    """
+    err_x = (cx - frame_w/2.0) / (frame_w/2.0)   # [-1, +1]
+    err_y = (cy - frame_h/2.0) / (frame_h/2.0)
+
+    ang_x = err_x * (config.CAM_FOV_H_DEG / 2.0)
+    ang_y = err_y * (config.CAM_FOV_V_DEG / 2.0)
+
+    roll_cmd  = max(-config.MAX_OPTICAL_CORRECTION_DEG,
+                min( config.MAX_OPTICAL_CORRECTION_DEG,
+                     ang_x * config.KV_LATERAL))
+    pitch_cmd = max(-config.MAX_OPTICAL_CORRECTION_DEG,
+                min( config.MAX_OPTICAL_CORRECTION_DEG,
+                     ang_y * config.KV_PITCH))
+
+    return OpticalCorrection(
+        roll_deg=roll_cmd, pitch_deg=pitch_cmd,
+        err_x_norm=err_x, err_y_norm=err_y)`.split('\n')
+  },
+
+  'vision_inject.lua': {lang:'lua', lines: `-- vision_inject.lua — ArduPlane Lua Script
+-- Receives visual correction from RPi via MAVLink
+-- NAMED_VALUE_FLOAT and injects into attitude target.
+-- Install: APM/scripts/vision_inject.lua | SCR_ENABLE=1
+
+local MAX_CORRECTION_DEG  = 15.0
+local CORRECTION_TIMEOUT  = 500  -- ms
+local SCRIPT_RATE_HZ      = 20
+
+local roll_correction_deg  = 0.0
+local pitch_correction_deg = 0.0
+local last_update_ms       = 0
+local active               = false
+
+gcs:send_text(6, "vision_inject: active")
+
+local function handle_mavlink()
+    local msg = mavlink:recv_chan(mavlink.CHANNEL_0)
+    if not msg then return end
+    if msg:get_type() ~= "NAMED_VALUE_FLOAT" then return end
+
+    local name = msg:field("name")
+    local val  = msg:field("value")
+
+    if name == "VIS_ROLL" then
+        roll_correction_deg = math.max(-MAX_CORRECTION_DEG,
+                              math.min( MAX_CORRECTION_DEG, val))
+        last_update_ms = millis(); active = true
+    elseif name == "VIS_PTCH" then
+        pitch_correction_deg = math.max(-MAX_CORRECTION_DEG,
+                               math.min( MAX_CORRECTION_DEG, val))
+        last_update_ms = millis(); active = true
+    end
+end
+
+local function check_timeout()
+    if active and (millis()-last_update_ms) > CORRECTION_TIMEOUT then
+        roll_correction_deg  = 0.0
+        pitch_correction_deg = 0.0
+        active = false
+    end
+end
+
+local function update()
+    handle_mavlink(); check_timeout()
+    local mode = vehicle:get_mode()
+    if mode ~= 10 and mode ~= 4 then return end  -- AUTO or GUIDED
+    if not active then return end
+
+    local tr = vehicle:get_target_roll_cd()
+    local tp = vehicle:get_target_pitch_cd()
+    if not tr or not tp then return end
+
+    vehicle:set_target_roll_cd(
+        math.max(-3500, math.min(3500, tr + roll_correction_deg*100)))
+    vehicle:set_target_pitch_cd(
+        math.max(-3000, math.min(2000, tp + pitch_correction_deg*100)))
+end
+
+return coroutine.create(function()
+    while true do
+        update()
+        coroutine.yield(1000 / SCRIPT_RATE_HZ)
+    end
+end)`.split('\n')
+  },
+};
+
+// ──────────────────────────────────────────────
+// BOM DATA
+// ──────────────────────────────────────────────
+
+const BOM = [
+  ['BOM-001','Flight Controller','Matek H743-WING v3','STM32H743 · ArduPlane · BEC integrated',1,45,45,'Matek/GetFPV'],
+  ['BOM-002','Vision Computer','Raspberry Pi Zero 2W','ARM A53×4 · 512MB · CSI camera interface',1,15,15,'Raspberry Pi'],
+  ['BOM-003','Camera','RPi Camera Module 3 Wide','IMX708 · 102° FOV · Nose-mounted',1,25,25,'RPi / PiHut'],
+  ['BOM-004','GNSS','u-blox M10 GPS','GPS+GLO+GAL · 10Hz · UART',1,30,30,'SparkFun'],
+  ['BOM-005','IMU','ICM-42688-P Breakout','6-axis · 32kHz · SPI',1,8,8,'SparkFun'],
+  ['BOM-006','Barometer','BMP388 Breakout','±0.5hPa · I2C/SPI · 200Hz',1,5,5,'Adafruit'],
+  ['BOM-007','Telemetry','SiK 915MHz Radio (pair)','MAVLink · 3km LOS · bidirectional',1,28,28,'mRobotics'],
+  ['BOM-008','RC Receiver','BetaFPV ELRS Lite','2.4GHz · SBUS · <1ms',1,12,12,'BetaFPV'],
+  ['BOM-009','Servo × 4','Emax ES9051 Digital 9g','2.0 kg·cm · 4× fin actuation',4,4.5,18,'Emax/GetFPV'],
+  ['BOM-010','Servo × 1','Emax ES9051 Digital 9g','Latch release servo (on carrier)',1,4.5,4.5,'Emax/GetFPV'],
+  ['BOM-011','Battery','CNHL 3S 1000mAh 30C','11.1V · XT30 · ~70g',1,16,16,'CNHL/Tattu'],
+  ['BOM-012','BEC #1','Pololu D24V22F5 5V/2.2A','Logic rail: FC + Pi + GPS',1,7.95,7.95,'Pololu'],
+  ['BOM-013','BEC #2','Pololu D24V22F5 5V/2.2A','Servo rail: all 5 servos',1,7.95,7.95,'Pololu'],
+  ['BOM-014','Connectors','XT30 pair × 3','Battery connectors',1,3,3,'Amass'],
+  ['BOM-015','Structure','CF Tube ø80×320mm','Fuselage main body',1,14,14,'Hobbyking/AliExpress'],
+  ['BOM-016','Structure','PETG Filament 0.5kg','All 3D printed structural parts',0.5,22,11,'Prusament/eSUN'],
+  ['BOM-017','Hardware','M3 Bolt Assortment','6/8/10/12/16mm stainless',1,6,6,'Local hardware'],
+  ['BOM-018','Hardware','M4×20mm Bolts + Nyloc × 4','Wing saddle mount',1,2,2,'Local hardware'],
+  ['BOM-019','Hardware','1.5mm Music Wire 500mm','Servo pushrods',1,3,3,'Hobbyking'],
+  ['BOM-020','Hardware','Du-Bro EZ Connectors × 8','Pushrod end connectors',1,4,4,'Du-Bro'],
+  ['BOM-021','Hardware','Vibration Foam 3mm','IMU isolation mount',1,3,3,'Amazon'],
+  ['BOM-022','Hardware','Nylon Standoff M3×5 × 8','FC/Pi non-conductive mount',1,2,2,'Amazon'],
+  ['BOM-023','Wire','Silicone Wire 26AWG 5-col','All signal/power wiring',1,8,8,'Amazon'],
+  ['BOM-024','Connectors','JST-SH 4-pin pairs × 5','GPS/IMU/Baro modular connectors',1,5,5,'Adafruit'],
+  ['BOM-025','Connectors','Servo Extension 15cm × 5','FC→fin servo extensions',1,4,4,'Hobbyking'],
+  ['BOM-026','Adhesive','30-min Epoxy 50ml','Structural bonds (nose+sections)',1,6,6,'Loctite'],
+  ['BOM-027','Adhesive','Loctite 243 Threadlocker','All servo/mount screws',1,5,5,'Loctite'],
+  ['BOM-028','Finish','Flat Black Spray Paint','Optional cosmetic finish',1,4,4,'Local'],
+  ['BOM-029','Target','Red Carpet 1m × 1m','Optical landing target',1,15,15,'Amazon/local'],
+  ['BOM-030','Target','EVA Foam Block 60×60×30cm','Nose impact cushion on carpet',1,20,20,'Amazon'],
+  ['BOM-031','Tool','Servo Tester','Calibration & verification',1,6,6,'Amazon'],
+  ['BOM-032','Tool','3S LiPo Balance Charger','ISDT Q6 or similar',1,25,25,'ISDT'],
+];
+
+// ──────────────────────────────────────────────
+// PIPELINE ITEMS
+// ──────────────────────────────────────────────
+
+const PIPELINE = [
+  {phase:'PRE-FLIGHT',title:'Site Preparation & Checks',color:'var(--blue)',
+   steps:['Red carpet placed, cushion centred on carpet','Target GPS coords loaded into config.py','All personnel outside 30m exclusion zone','Weather: wind < 8 m/s, visibility > 500m','LiPo charged > 12.3V, no swelling']},
+  {phase:'S0 → S1',title:'ARM Command',color:'var(--yellow)',
+   steps:['Operator sends ARM via TX CH7 HIGH or GCS button','FC checks: GPS 3D fix + HDOP < 3.0','On pass: system enters ARMED state','GCS shows: "POD ARMED — REACHABILITY ACTIVE"']},
+  {phase:'S1 — ARMED',title:'Reachability Monitoring',color:'var(--yellow)',
+   steps:['System continuously computes: dist ≤ alt_agl × 4.0 × 0.85','GCS shows range utilisation (%)','If target in range: "IN RANGE — SAFE TO DROP"','If out of range: DROP command will be auto-rejected']},
+  {phase:'S1 → S2',title:'DROP Command + Release',color:'var(--accent)',
+   steps:['Operator sends DROP via TX CH8 HIGH or GCS button','Reachability check runs one final time','If rejected: GCS shows reason, no release','If accepted: latch servo fires → pod separates from wing']},
+  {phase:'S2 → S3',title:'GPS Glide Phase',color:'var(--accent)',
+   steps:['FC detects separation (accel/latch feedback)','ArduPlane GUIDED mode: waypoint = target coordinates','L1 navigation controller steers pod toward target','PID attitude loops maintain stable descent (no oscillation)','Barometer monitors AGL altitude']},
+  {phase:'S3 → S4',title:'Camera Activation (40m AGL)',color:'var(--purple)',
+   steps:['Barometer triggers camera at 40m AGL (configurable)','RPi camera module activates (was idle to save power)','OpenCV HSV pipeline begins processing at 30fps','Dual-range red mask identifies carpet blob','Centroid extracted, confidence scored 0.0–1.0']},
+  {phase:'S4',title:'Optical Terminal Guidance',color:'var(--purple)',
+   steps:['When confidence ≥ 0.80 for 5 consecutive frames: LOCKED','Pixel error (cx-centre, cy-centre) → angular correction','Roll correction steers pod laterally toward carpet','Pitch correction adjusts dive angle','Corrections sent to FC via MAVLink NAMED_VALUE_FLOAT','vision_inject.lua applies corrections to attitude setpoints']},
+  {phase:'S4 → S5',title:'Nose-Impact Landing',color:'var(--green)',
+   steps:['Pod dives nose-first toward cushion on red carpet','Phase 1: No flare manoeuvre — direct impact','Foam/air cushion absorbs nose impact energy','Accelerometer spike > 4g detected → LANDED state','GCS shows "MISSION COMPLETE" + elapsed flight time']},
+];
+
+// ──────────────────────────────────────────────
+// RENDER FUNCTIONS
+// ──────────────────────────────────────────────
+
+function syntax(line, lang) {
+  if(lang==='python'){
+    line = line
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/(#.*)$/,'<span class="cm">$1</span>')
+      .replace(/\b(def|class|async|await|if|elif|else|for|while|return|import|from|and|or|not|in|is|True|False|None|match|case|pass|raise|with|as|try|except|finally|yield|lambda|del|global|nonlocal|break|continue)\b/g,'<span class="kw">$1</span>')
+      .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|f"[^"]*"|f'[^']*')/g,'<span class="str">$1</span>')
+      .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>')
+      .replace(/\b([A-Z][A-Z_0-9]+)\b(?!\s*[:(])/g,'<span class="dec">$1</span>');
+  } else if(lang==='lua'){
+    line = line
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/(--.*$)/,'<span class="cm">$1</span>')
+      .replace(/\b(local|function|if|then|else|elseif|end|while|do|for|return|and|or|not|in|nil|true|false|repeat|until|break)\b/g,'<span class="kw">$1</span>')
+      .replace(/("(?:[^"\\]|\\.)*")/g,'<span class="str">$1</span>')
+      .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  } else {
+    line = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  return line;
+}
+
+function renderCode(key) {
+  const f = FILES[key];
+  if(!f) return '<div style="padding:2rem;color:var(--muted);">File not found in viewer</div>';
+  const rows = f.lines.map((l,i)=>
+    `<tr><td class="ln">${i+1}</td><td class="lc">${syntax(l,f.lang)}</td></tr>`
+  ).join('');
+  const raw = f.lines.join('\n');
+  return `<div class="code-viewer">
+    <div class="code-header">
+      <div class="code-header-left">
+        <span class="code-filename">${key}</span>
+        <span class="code-lang">${f.lang}</span>
+        <span class="code-lines-count">${f.lines.length} lines</span>
+      </div>
+      <button class="copy-btn" onclick="copyCode(${JSON.stringify(raw)})">Copy</button>
+    </div>
+    <div class="code-body"><table><tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
+function renderBOM() {
+  const rows = BOM.map(r=>`<tr>
+    <td class="bom-id">${r[0]}</td>
+    <td class="bom-cat">${r[1]}</td>
+    <td class="bom-name">${r[2]}</td>
+    <td style="color:var(--muted);font-size:10px;">${r[3]}</td>
+    <td style="text-align:center;">${r[4]}</td>
+    <td class="bom-price">$${r[5]}</td>
+    <td class="bom-price">$${r[6].toFixed(2)}</td>
+  </tr>`).join('');
+  const total = BOM.reduce((s,r)=>s+r[6],0);
+  document.getElementById('bom-body').innerHTML = rows +
+    `<tr class="bom-total-row"><td colspan="5">TOTAL</td><td></td><td class="bom-price">$${total.toFixed(2)}</td></tr>`;
+}
+
+function renderPipeline() {
+  const html = PIPELINE.map(p=>`
+    <div style="position:relative;padding:0 0 2rem 1.5rem;">
+      <div style="position:absolute;left:-6px;top:4px;width:11px;height:11px;border:2px solid ${p.color};background:var(--bg);transform:rotate(45deg);"></div>
+      <div style="font-size:9px;letter-spacing:0.2em;color:${p.color};margin-bottom:0.3rem;">${p.phase}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--bright);margin-bottom:0.5rem;">${p.title}</div>
+      <ul style="list-style:none;padding:0;">${p.steps.map(s=>`<li style="font-size:11px;color:var(--text);padding:0.15rem 0;display:flex;gap:0.5rem;"><span style="color:${p.color};">›</span>${s}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+  document.getElementById('pipeline-items').innerHTML = html;
+}
+
+function renderOverviewCode() {
+  const lines = FILES['guidance.py'].lines.slice(30, 55);
+  const rows = lines.map((l,i)=>
+    `<tr><td class="ln">${i+31}</td><td class="lc">${syntax(l,'python')}</td></tr>`
+  ).join('');
+  document.getElementById('overview-code').innerHTML = rows;
+}
+
+// ──────────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────────
+
+function showRoot(el) {
+  document.querySelectorAll('.tree-item').forEach(x=>x.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('dir-view').style.display='block';
+  document.getElementById('file-view').style.display='none';
+  document.getElementById('sub-dir-view').innerHTML='';
+  document.getElementById('breadcrumb').innerHTML=
+    '<a href="#" onclick="showRoot()">Precision Aerial Delivery System</a>';
+}
+
+const MD_CONTENT = {
+  'README.md': `<h1>🎯 Drop Pod — Precision Aerial Delivery System</h1>
+<blockquote>A fully autonomous, GPS + vision-guided drop pod carried under the wing of an RC aircraft. Released on operator command, it navigates to a red carpet using GPS macro-guidance and nose-mounted optical terminal tracking — nose-first impact, cushion-assisted landing. No propulsion. No parachute. Pure precision.</blockquote>
+<h2>How It Works</h2>
+<pre>[ GROUND ]              [ IN-AIR ]                 [ TERMINAL ]
+Load target GPS    →    Carrier delivers pod    →   Pod descends GPS-guided
+Arm system              over drop zone              ↓
+Confirm range           ↓                           At ~40m AGL:
+Cushion on carpet       Operator ARM → DROP         Camera activates
+                        ↓                           Red carpet locked
+                        Reachability check          Optical steering
+                        passes                      ↓
+                        ↓                           Nose-impact on cushion ✓
+                        Latch fires</pre>
+<h2>Quick Start</h2>
+<pre>git clone https://github.com/your-org/drop-pod.git
+cd drop-pod/software
+pip3 install -r requirements.txt
+nano config.py            # Set TARGET_LAT, TARGET_LON
+python3 mission_manager.py</pre>
+<h2>Phase 1 Scope (this repo)</h2>
+<p>GPS approach + optical lock + direct nose-impact. No flare. Ground team places foam cushion on the red carpet. Pod hits it clean.</p>
+<h2>Architecture</h2>
+<table><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+<tr><td>Flight controller</td><td>ArduPlane (STM32)</td><td>PID, servo mixing, GPS nav</td></tr>
+<tr><td>Vision + FSM</td><td>Python 3.11 on RPi</td><td>OpenCV, mission state machine</td></tr>
+<tr><td>Inter-proc comms</td><td>MAVLink over UART</td><td>Pi ↔ FC bidirectional</td></tr>
+<tr><td>GCS</td><td>Mission Planner / MAVProxy</td><td>Ground control, telemetry</td></tr>
+</table>
+<h2>Cost Estimate</h2><p>~$265 USD for all electronic and structural components. See BOM.csv for full sourcing.</p>
+<h2>License</h2><p>MIT — free to use, modify, build. Please credit the project.</p>`,
+
+  'ASSEMBLY.md': `<h1>🔩 Assembly Guide</h1>
+<blockquote>Read the entire guide before starting. Lay out all components and verify against BOM.csv first.</blockquote>
+<h2>Phase 1 — Camera Nose Assembly</h2>
+<p>The camera IS the nose of the pod. Handle the Camera Module 3 by its edges only. Thread CSI ribbon through the side slot in the nose section <strong>before</strong> seating the camera. Apply hot glue around edges — not over the lens. Bond to CF tube with 30-minute epoxy, align fin mount slots.</p>
+<h2>Phase 2 — Fin &amp; Servo Assembly</h2>
+<p>Test all 4 servos with a servo tester before installation. Verify servo arm is at 90° to body at 1500μs neutral. Install into fin_mount_forward ring with M2 screws + Loctite 243. Fabricate pushrods from 1.5mm music wire with Z-bends. With servo at neutral, fin should be flush with tube body (±0.5°).</p>
+<h2>Phase 3 — Avionics Installation</h2>
+<p>Mount FC on vibration-dampening foam using nylon standoffs. Route CSI ribbon to RPi <strong>before sliding tray into tube</strong> — impossible after. GPS patch antenna must face skyward through a hole in the tray. Keep antenna 30mm+ from servo wires.</p>
+<h2>Phase 4 — Power Bay</h2>
+<p>Two BECs share common GND but are separate output rails. BEC #1 powers logic (FC, Pi, GPS). BEC #2 powers servos. Never share — servo transients damage logic. Secure battery with Velcro straps through cradle slots.</p>
+<h2>CG Check</h2>
+<p>Balance assembled pod on a 5mm rod at 95mm from nose tip (30% of 320mm). Pod should be level or slightly nose-heavy. Adjust ballast in tail cap. Never fly tail-heavy.</p>`,
+
+  'SAFETY.md': `<h1>⚠️ Safety Guide</h1>
+<blockquote>This document must be read by every person involved in a drop pod operation. The pod is a guided projectile. Treat it accordingly.</blockquote>
+<h2>Exclusion Zone</h2>
+<p>Minimum 30m radius around the target zone must be clear of all personnel during any DROP operation. Establish with cones/tape. Confirm verbally before ARM command is issued.</p>
+<h2>Two-Stage Safety Gates</h2>
+<pre>GATE 1 — ARM
+  Requires: explicit ARM command
+  Checks: GPS fix valid, HDOP &lt; 3.0
+  On pass: ARMED state, reachability monitoring begins
+
+GATE 2 — DROP (automatic on DROP command)
+  Checks: distance ≤ alt_agl × glide_ratio × 0.85
+  Checks: altitude ≥ 40m AGL
+  On fail: command rejected, GCS notified, no release</pre>
+<h2>Pre-Flight Checklist Summary</h2>
+<ul>
+<li>LiPo voltage ≥ 12.3V, no swelling</li>
+<li>GPS 3D fix, HDOP &lt; 2.0, sats ≥ 8</li>
+<li>All 4 fins verified deflection direction</li>
+<li>Camera detects red carpet on bench test</li>
+<li>Target coordinates verified on GCS map</li>
+<li>Exclusion zone established and confirmed clear</li>
+<li>Wind &lt; 8 m/s</li>
+</ul>
+<h2>Regulatory Note</h2>
+<p>In Morocco: consult ANAC. In EU: EASA specific category rules. In USA: FAA Part 107 section 107.23 — dropping objects requires waiver. Always operate in unpopulated, cleared areas.</p>`,
+
+  'TUNING.md': `<h1>📐 PID Tuning Guide</h1>
+<blockquote>Never tune on a real drop before completing all lower-risk steps. Follow the progression strictly.</blockquote>
+<h2>Tuning Levels</h2>
+<table><tr><th>Level</th><th>Method</th><th>Purpose</th></tr>
+<tr><td>0</td><td>Bench (no flight)</td><td>Servo zero, fin direction, IMU axes</td></tr>
+<tr><td>1</td><td>Hand-drop 1–2m</td><td>Attitude stabilisation, step response</td></tr>
+<tr><td>2</td><td>Pole/crane 10–20m</td><td>GPS tracking, low-altitude response</td></tr>
+<tr><td>3</td><td>Full aircraft 60m+</td><td>Full mission, optical gain tuning</td></tr>
+</table>
+<h2>Starting PID Values</h2>
+<pre>PTCH_RATE_P=0.08  PTCH_RATE_I=0.02  PTCH_RATE_D=0.004
+RLL_RATE_P=0.10   RLL_RATE_I=0.02   RLL_RATE_D=0.004
+PTCH2SRV_P=1.5    PTCH2SRV_I=0.20   PTCH2SRV_D=0.04
+RLL2SRV_P=1.8     RLL2SRV_I=0.20    RLL2SRV_D=0.04</pre>
+<h2>Common Issues</h2>
+<table><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+<tr><td>Rolls on release</td><td>Servo zero offset</td><td>Re-zero all servos</td></tr>
+<tr><td>Persistent pitch-up</td><td>CG too far back</td><td>Move battery forward</td></tr>
+<tr><td>High-freq oscillation</td><td>Too much D or P</td><td>Reduce D first, then P 10%</td></tr>
+<tr><td>Slow roll response</td><td>Too little P</td><td>Increase RLL_RATE_P 15%</td></tr>
+</table>`,
+
+  'wiring_diagram.md': `<h1>⚡ Wiring Diagram</h1>
+<h2>Power Architecture</h2>
+<pre>3S LiPo (11.1V) ──XT30──────────────────────────────────
+   │                                                    │
+   ├── BEC #1 (5V/2.2A) — LOGIC RAIL ─────────────────┤
+   │   ├── F405 FC 5V input                             │
+   │   ├── RPi Zero 2W 5V (GPIO pin 2)                 │
+   │   ├── u-blox GPS 5V                               │
+   │   └── SiK Radio 5V                                │
+   │                                                    │
+   └── BEC #2 (5V/2.2A) — SERVO RAIL ─────────────────┤
+       ├── Servo 1 (FIN TOP)    5V                     │
+       ├── Servo 2 (FIN BOTTOM) 5V                     │
+       ├── Servo 3 (FIN LEFT)   5V                     │
+       ├── Servo 4 (FIN RIGHT)  5V                     │
+       └── Servo 5 (LATCH)      5V ── on carrier        │
+                                                        │
+All GND ───────────────────────────────────── GND ──── ┘</pre>
+<h2>F405 → RPi UART</h2>
+<pre>F405 UART1 TX  ──────────► RPi GPIO15 (RX)
+RPi GPIO14 (TX) ──────────► F405 UART1 RX
+F405 GND ─────────────────── RPi GND</pre>
+<h2>F405 Servo Outputs</h2>
+<pre>S1 ── FIN TOP servo
+S2 ── FIN BOTTOM servo  
+S3 ── FIN LEFT servo
+S4 ── FIN RIGHT servo
+S5 ── LATCH servo (on carrier aircraft wing)</pre>`,
+
+  'stl_readme.md': `<h1>🖨️ 3D Printed Parts</h1>
+<blockquote>Use PETG for ALL structural parts. Do not use PLA — impact resistance is critical.</blockquote>
+<h2>Parts List</h2>
+<table><tr><th>File</th><th>Qty</th><th>Infill</th><th>Notes</th></tr>
+<tr><td>nose_camera_mount.stl</td><td>1</td><td>40%</td><td>Camera IS the nose. Print at 0.15mm layer height for lens pocket accuracy.</td></tr>
+<tr><td>fin_mount_forward.stl</td><td>1</td><td>60%</td><td>Servo bay ring. Critical structural part.</td></tr>
+<tr><td>fin_blade.stl</td><td>4</td><td>30%</td><td>NACA 0009 profile. Print all 4 in one batch for matching mass.</td></tr>
+<tr><td>avionics_tray.stl</td><td>1</td><td>40%</td><td>FC + Pi + GPS mount. Install CSI ribbon before closing.</td></tr>
+<tr><td>power_bay.stl</td><td>1</td><td>35%</td><td>Battery cradle + BEC holders.</td></tr>
+<tr><td>tail_ballast_cap.stl</td><td>1</td><td>50%</td><td>Removable ballast pocket for CG tuning.</td></tr>
+<tr><td>wing_saddle_mount.stl</td><td>1</td><td>80%</td><td>Carrier wing attachment — maximum infill, inspect after every flight.</td></tr>
+</table>
+<h2>CG Target</h2>
+<p>Balance assembled pod at <strong>95–105mm from nose tip</strong> (30% of 320mm body length). Nose-heavy = stable. Tail-heavy = tumbles and cannot be controlled.</p>`,
+};
+
+function openFile(name, el) {
+  if(el){
+    document.querySelectorAll('.tree-item').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+  }
+  document.getElementById('dir-view').style.display='none';
+  document.getElementById('file-view').style.display='block';
+
+  // update breadcrumb
+  const crumbPath = name.replace('_dir','').replace('_',' ');
+  document.getElementById('breadcrumb').innerHTML =
+    `<a href="#" onclick="showRoot()">root</a> <span style="color:var(--border);">/</span> <span style="color:var(--muted);">${crumbPath}</span>`;
+
+  const content = document.getElementById('file-content');
+
+  if(name.endsWith('.py') || name.endsWith('.lua')){
+    content.innerHTML = renderCode(name);
+  } else if(name in MD_CONTENT){
+    content.innerHTML = `<div class="readme-viewer">
+      <div class="readme-header">📄 ${name}</div>
+      <div class="readme-body">${MD_CONTENT[name]}</div>
+    </div>`;
+  } else if(name === 'BOM.csv'){
+    const rows = BOM.map(r=>`${r[0]},${r[1]},"${r[2]}","${r[3]}",${r[4]},${r[5]},${r[6]},"${r[7]}"`).join('\n');
+    const header = 'ID,Category,Component,Description,Qty,Unit_Price_USD,Total_USD,Supplier\n';
+    content.innerHTML = `<div class="code-viewer">
+      <div class="code-header">
+        <span class="code-filename">BOM.csv</span>
+        <span class="code-lang">CSV</span>
+        <button class="copy-btn" onclick="copyCode(${JSON.stringify(header+rows)})">Copy CSV</button>
+      </div>
+      <div class="code-body"><table><tbody>${(header+rows).split('\n').map((l,i)=>`<tr><td class="ln">${i+1}</td><td class="lc" style="color:${i===0?'var(--muted)':'var(--text)'};">${l.replace(/</g,'&lt;')}</td></tr>`).join('')}</tbody></table></div>
+    </div>`;
+  } else if(name === 'drop_pod.param'){
+    const paramLines = `# Drop Pod — ArduPlane Parameter File
+# Load via Mission Planner: Full Param List → Load from file
+FRAME_CLASS,2
+FRAME_TYPE,1
+SERVO1_FUNCTION,4       # FIN LEFT (aileron)
+SERVO2_FUNCTION,4       # FIN RIGHT (aileron reversed)
+SERVO3_FUNCTION,19      # FIN TOP (elevator)
+SERVO4_FUNCTION,19      # FIN BOTTOM (elevator reversed)
+SERVO5_FUNCTION,28      # LATCH servo (relay 1)
+SERVO1_REVERSED,0
+SERVO2_REVERSED,1
+SERVO3_REVERSED,0
+SERVO4_REVERSED,1
+LIM_ROLL_CD,3500
+LIM_PITCH_MAX,2000
+LIM_PITCH_MIN,-3000
+PTCH_RATE_P,0.08
+PTCH_RATE_I,0.02
+PTCH_RATE_D,0.004
+RLL_RATE_P,0.10
+RLL_RATE_I,0.02
+RLL_RATE_D,0.004
+NAVL1_PERIOD,18
+NAVL1_DAMPING,0.75
+THR_MAX,0
+THR_MIN,0
+THR_TRIM,0
+GPS_TYPE,1
+SERIAL1_PROTOCOL,2
+SERIAL1_BAUD,115
+RELAY_PIN,13
+RELAY_DEFAULT,0
+LOG_BITMASK,65535
+LOG_DISARMED,1`.split('\n');
+    const rows = paramLines.map((l,i)=>
+      `<tr><td class="ln">${i+1}</td><td class="lc">${l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/(#.*)$/,'<span class="cm">$1</span>')}</td></tr>`
+    ).join('');
+    content.innerHTML = `<div class="code-viewer">
+      <div class="code-header"><span class="code-filename">drop_pod.param</span><span class="code-lang">ArduPlane</span></div>
+      <div class="code-body"><table><tbody>${rows}</tbody></table></div>
+    </div>`;
+  } else if(name === 'LICENSE'){
+    content.innerHTML = `<div class="readme-viewer">
+      <div class="readme-header">⚖️ LICENSE</div>
+      <div class="readme-body"><h2>MIT License</h2><p>Copyright (c) 2025 Drop Pod Research Team</p>
+      <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+      <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+      <p><strong>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND</strong>, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</p></div>
+    </div>`;
+  } else if(name.endsWith('_dir')){
+    // directory listing
+    const dirs = {
+      'software_dir':[
+        {n:'config.py',d:'All tunable mission parameters',i:'⚙️'},
+        {n:'mission_manager.py',d:'Main async FSM — entry point',i:'🚀'},
+        {n:'vision.py',d:'OpenCV red carpet detection pipeline',i:'👁️'},
+        {n:'guidance.py',d:'Reachability check + optical correction math',i:'🧭'},
+        {n:'comms.py',d:'MAVLink FC interface (async pymavlink)',i:'📡'},
+        {n:'requirements.txt',d:'pip dependencies for RPi',i:'📋'},
+      ],
+      'firmware_dir':[
+        {n:'drop_pod.param',d:'ArduPlane parameter file — load via Mission Planner',i:'✈️'},
+        {n:'vision_inject.lua',d:'Lua script: ingest Pi corrections into attitude loop',i:'🔧'},
+      ],
+      'hardware_dir':[
+        {n:'wiring_diagram.md',d:'Full pinout, wiring, power architecture',i:'⚡'},
+        {n:'stl_readme.md',d:'3D print settings for all 8 structural parts',i:'🖨️'},
+      ],
+      'docs_dir':[
+        {n:'ASSEMBLY.md',d:'Step-by-step build guide (6 phases)',i:'🔩'},
+        {n:'TUNING.md',d:'PID tuning — 4 levels from bench to full drop',i:'📐'},
+        {n:'SAFETY.md',d:'Pre-flight checklist, exclusion zone, regulations',i:'⚠️'},
+      ],
+    };
+    const items = dirs[name]||[];
+    const rows = items.map(f=>`<tr>
+      <td class="f-icon">${f.i}</td>
+      <td><span class="f-name" onclick="openFile('${f.n}')">${f.n}</span></td>
+      <td class="f-desc">${f.d}</td>
+      <td class="f-time">just now</td>
+    </tr>`).join('');
+    content.innerHTML = `<table class="file-table">
+      <thead><tr><th></th><th>Name</th><th>Description</th><th>Updated</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  } else {
+    content.innerHTML = `<div style="padding:2rem;color:var(--muted);font-size:12px;">Select a file from the sidebar to view its contents.</div>`;
+  }
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function copyCode(text) {
+  navigator.clipboard.writeText(text).then(()=>{
+    const t = document.getElementById('copy-toast');
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2000);
+  });
+}
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+renderBOM();
+renderPipeline();
+renderOverviewCode();
+</script>
+</body>
+</html>
