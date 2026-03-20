@@ -442,7 +442,7 @@ See [docs/TUNING.md](docs/TUNING.md) for full procedure. Key steps:
 
 - This system drops a ~650g object from altitude. Treat it as a **projectile**.
 - Always operate in a **cleared, controlled area** with ground personnel outside the drop radius.
-- **National regulations apply.** In Morocco: consult ANAC. In EU: EASA UAS open/specific category rules. In the US: FAA Part 107 may require a waiver for dropping objects.
+- **National regulations apply.** In EU: EASA UAS open/specific category rules. In the US: FAA Part 107 may require a waiver for dropping objects.
 - Use the two-step ARM → DROP command sequence. Never skip ARM.
 - The reachability check is a safety gate — **do not bypass it in code**.
 
@@ -484,15 +484,6 @@ PRs welcome in these areas:
 - Simulation environments (Gazebo/AirSim configs)
 
 ---
-
-## Team & Credits
-
-Built by a dedicated research team committed to open-source precision aerial systems.
-
-> *"This is the project this team will be remembered for."*
-
----
-
 ## License
 
 MIT License — see [LICENSE](LICENSE). Free to use, modify, and build. Please credit the project.
