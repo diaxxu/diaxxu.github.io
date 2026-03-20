@@ -1,0 +1,167 @@
+# Drop Pod — ArduPlane Parameter File
+# Load via Mission Planner: Full Param List → Load from file
+#
+# Based on ArduPlane 4.4+
+# Hardware: Matek H743-WING or F405-WING
+# Mode: Fixed-wing glider (no throttle, no propulsion)
+#
+# IMPORTANT: After loading, ALWAYS recalibrate:
+# 1. Accelerometer (6-point)
+# 2. Compass
+# 3. Radio/RC
+# 4. ESC (not needed — no motor)
+# Then do servo test to verify fin deflection directions.
+
+# ── FRAME TYPE ────────────────────────────────────────────
+FRAME_CLASS,2                   # Fixed wing
+FRAME_TYPE,1                    # Conventional
+
+# ── INITIAL FLIGHT MODE ───────────────────────────────────
+INITIAL_MODE,0                  # Manual on startup (safe)
+FLTMODE1,0                      # Manual
+FLTMODE2,5                      # FBWA (Fly-By-Wire A) — good for test
+FLTMODE3,10                     # Auto — for GPS guided flight
+FLTMODE4,4                      # Guided — for dynamic waypoint
+FLTMODE5,0                      # Manual (emergency)
+FLTMODE6,0
+
+# ── SERVO OUTPUT ASSIGNMENTS ──────────────────────────────
+# Canard fin layout: cruciform, 4 fins at nose
+# Mix: Fin TOP = elevator-like (pitch), L/R = aileron-like (roll)
+SERVO1_FUNCTION,4               # Aileron (maps to FIN LEFT)
+SERVO2_FUNCTION,4               # Aileron reversed (FIN RIGHT)
+SERVO3_FUNCTION,19              # Elevator (FIN TOP)
+SERVO4_FUNCTION,19              # Elevator reversed (FIN BOTTOM)
+SERVO5_FUNCTION,28              # Relay 1 (latch servo — CH5)
+
+# Servo direction — adjust if fin deflects wrong way
+SERVO1_REVERSED,0
+SERVO2_REVERSED,1               # Typically needs reversal for opposite fin
+SERVO3_REVERSED,0
+SERVO4_REVERSED,1
+SERVO5_REVERSED,0
+
+# Servo travel limits (microseconds)
+SERVO1_MIN,1000
+SERVO1_MAX,2000
+SERVO1_TRIM,1500
+SERVO2_MIN,1000
+SERVO2_MAX,2000
+SERVO2_TRIM,1500
+SERVO3_MIN,1000
+SERVO3_MAX,2000
+SERVO3_TRIM,1500
+SERVO4_MIN,1000
+SERVO4_MAX,2000
+SERVO4_TRIM,1500
+SERVO5_MIN,1000
+SERVO5_MAX,2000
+SERVO5_TRIM,1500                # Latch: 1500=locked, 2000=released
+
+# ── CONTROL SURFACE LIMITS ────────────────────────────────
+LIM_ROLL_CD,3500                # Max roll 35° (3500 centidegrees)
+LIM_PITCH_MAX,2000              # Max pitch up 20°
+LIM_PITCH_MIN,-3000             # Max pitch down 30°
+
+# ── RC CHANNEL ASSIGNMENTS ────────────────────────────────
+RCMAP_ROLL,1
+RCMAP_PITCH,2
+RCMAP_THROTTLE,3
+RCMAP_YAW,4
+# CH5 = Flight mode switch
+# CH7 = ARM command (mission manager reads via MAVLink)
+# CH8 = DROP command
+# CH9 = ABORT command
+
+# ── RC FAILSAFE ───────────────────────────────────────────
+FS_SHORT_ACTN,0                 # Short failsafe: continue
+FS_LONG_ACTN,1                  # Long failsafe: FBWA mode
+FS_GCS_ENABL,1                  # Enable GCS failsafe
+FS_GCS_TIMEOUT,5                # GCS timeout seconds
+
+# ── ATTITUDE CONTROL PID (Pitch) ──────────────────────────
+# These are starting values — tune per hardware
+PTCH_RATE_P,0.08
+PTCH_RATE_I,0.02
+PTCH_RATE_D,0.004
+PTCH_RATE_FF,0.0
+PTCH_RATE_IMAX,0.25
+PTCH2SRV_P,1.5
+PTCH2SRV_I,0.2
+PTCH2SRV_D,0.04
+PTCH2SRV_IMAX,3000
+
+# ── ATTITUDE CONTROL PID (Roll) ───────────────────────────
+RLL_RATE_P,0.10
+RLL_RATE_I,0.02
+RLL_RATE_D,0.004
+RLL_RATE_FF,0.0
+RLL_RATE_IMAX,0.25
+RLL2SRV_P,1.8
+RLL2SRV_I,0.2
+RLL2SRV_D,0.04
+RLL2SRV_IMAX,3000
+
+# ── NAVIGATION (L1 Controller) ────────────────────────────
+NAVL1_PERIOD,18                 # L1 period — lower = more aggressive tracking
+NAVL1_DAMPING,0.75
+
+# ── TECS (Glide Energy Management) ───────────────────────
+# No throttle — TECS manages pitch only to maintain speed/sink
+TECS_CLMB_MAX,0.0               # No climb — we only descend
+TECS_SINK_MIN,1.0               # Minimum sink rate (m/s)
+TECS_SINK_MAX,6.0               # Max sink rate — nose-impact mode
+TECS_TIME_CONST,5.0
+TECS_THR_DAMP,0.1
+TECS_PTCH_DAMP,0.3
+ARSPD_FBW_MIN,10                # Min airspeed 10 m/s
+ARSPD_FBW_MAX,22                # Max airspeed 22 m/s
+TRIM_ARSPD_CM,1400              # Trim airspeed 14 m/s
+
+# Disable throttle entirely (no propulsion)
+THR_MAX,0
+THR_MIN,0
+THR_TRIM,0
+
+# ── EKF CONFIGURATION ─────────────────────────────────────
+EK3_ENABLE,1
+EK2_ENABLE,0                    # Use EKF3 only
+EK3_GPS_TYPE,0                  # Use GPS for position and velocity
+EK3_SRC1_POSXY,3                # GPS for horizontal position
+EK3_SRC1_VELXY,3                # GPS for horizontal velocity
+EK3_SRC1_POSZ,1                 # Baro for vertical position
+EK3_SRC1_VELZ,0
+
+# ── GPS ───────────────────────────────────────────────────
+GPS_TYPE,1                      # u-blox
+GPS_NAVFILTER,8                 # Most accurate filter
+GPS_AUTO_CONFIG,1               # Auto-configure u-blox
+GPS_MIN_ELEV,5                  # Min satellite elevation 5°
+GPS_HDOP_GOOD,140               # HDOP threshold for "good" fix
+
+# ── BAROMETER ─────────────────────────────────────────────
+BARO_PROBE_EXT,1                # Enable external baro (BMP388)
+
+# ── COMPANION COMPUTER (RPi) ──────────────────────────────
+SERIAL1_PROTOCOL,2              # MAVLink2 on UART1 (connected to Pi)
+SERIAL1_BAUD,115                # 115200 baud
+SYSID_MYGCS,255                 # GCS sysid
+SYSID_THISMAV,1                 # FC sysid
+
+# ── RELAY (Latch Servo) ───────────────────────────────────
+RELAY_PIN,13                    # GPIO13 → maps to SERVO5 output
+RELAY_PIN2,-1
+RELAY_DEFAULT,0                 # Default: latch CLOSED on boot
+
+# ── ARMING CHECKS ─────────────────────────────────────────
+ARMING_CHECK,1                  # All checks enabled
+ARMING_REQUIRE,1                # Require arming before any output
+
+# ── LOGGING ───────────────────────────────────────────────
+LOG_BITMASK,65535               # Log everything
+LOG_DISARMED,1                  # Log even when disarmed (useful for testing)
+
+# ── MISC ──────────────────────────────────────────────────
+WP_RADIUS,5                     # Waypoint capture radius 5m
+WP_LOITER_RAD,20                # Loiter radius (not normally used)
+STAB_PITCH_DOWN,2               # Auto-pitch down when no throttle (glide assist)

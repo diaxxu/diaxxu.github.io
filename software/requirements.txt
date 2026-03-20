@@ -1,0 +1,15 @@
+# Drop Pod — Python Dependencies
+# Install on Raspberry Pi Zero 2W:
+#   pip3 install -r requirements.txt
+#
+# Note: opencv-python-headless is lighter than full opencv
+# (no GUI display dependencies — better for headless Pi)
+# If you want to use vision.py test mode with display, use:
+#   pip3 install opencv-python
+
+opencv-python-headless>=4.8.0
+pymavlink>=2.4.40
+numpy>=1.24.0
+RPi.GPIO>=0.7.1         # For GPIO control if needed
+picamera2>=0.3.12       # RPi Camera Module 3 support
+PyYAML>=6.0             # Config file support (optional)
