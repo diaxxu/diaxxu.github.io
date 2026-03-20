@@ -1,8 +1,9 @@
 #  DROP POD — Precision Aerial Delivery System
 
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="Drop Pod Banner" width="700"/>
+  
 </p>
+<img width="1255" height="507" alt="Capture d&#39;écran 2026-03-20 113256" src="https://github.com/user-attachments/assets/94ea00aa-1a5b-4375-b1bc-d8ddc1eb9a80" />
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-active--development-orange?style=flat-square"/>
