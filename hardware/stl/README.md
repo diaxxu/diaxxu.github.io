@@ -7,10 +7,10 @@
 
 | Parameter | Minimum | Recommended |
 |-----------|---------|-------------|
-| Build volume | 150×150×150mm | 200×200×200mm |
+| Build volume | 100×100×100mm | 200×200×200mm |
 | Layer resolution | 0.2mm | 0.15mm |
 | Extruder temp | 230°C (PETG) | 240°C |
-| Bed temp | 70°C | 80°C |
+| Bed temp | 0°C | 80°C |
 | Bed surface | PEI/glass | PEI textured |
 
 ---
